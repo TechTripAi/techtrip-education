@@ -1,0 +1,4 @@
+# Study state is plain text that must parse identically on every OS.
+* text=auto eol=lf
+*.png binary
+*.sh text eol=lf
