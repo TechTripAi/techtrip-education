@@ -70,5 +70,5 @@ plugin are in the catalog's `docs/packaging.md` and are not repeated here.
 2. Add the `## [x.y.z] - YYYY-MM-DD` section to `CHANGELOG.md`.
 3. `bash scripts/check.sh`.
 4. Commit locally with a plain message. The owner pushes.
-5. The catalog entry is added at first release. After that, set the entry's `version` in
-   TechTrip-AI-plugins to the same string after every release here.
+5. Set the entry's `version` in TechTrip-AI-plugins to the same string after every release
+   here.

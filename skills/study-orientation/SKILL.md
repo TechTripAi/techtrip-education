@@ -216,15 +216,13 @@ yourself; the first changes nothing in the subject, the second moves it to the a
 
 ## Section 13: install and update
 
-Until the plugin is listed in the TechTrip-AI-plugins catalog, it is installed from a local
-checkout:
+The plugin is installed from the TechTrip-AI-plugins catalog:
 
-**Shell: run in your terminal**
+**Prompt: type into Claude Code**
 ```
-git clone git@github.com:TechTripAi/techtrip-education.git
-claude plugin marketplace add <path to>/techtrip-education
-claude plugin install techtrip-education@techtrip-education
+/plugin marketplace add TechTripAi/TechTrip-AI-plugins
+/plugin install techtrip-education@TechTrip-AI-plugins
 ```
 
-Update with `git pull` in the checkout, then start a new session. The README in the plugin
-repository covers other AI tools.
+Update with `/plugin update techtrip-education@TechTrip-AI-plugins`, then start a new
+session. The README in the plugin repository covers other AI tools.

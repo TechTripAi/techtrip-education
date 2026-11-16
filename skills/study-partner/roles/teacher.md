@@ -8,6 +8,26 @@ new subject, to change a plan, and to teach or explain a Learn step.
 Planning comes before any teaching. It has four parts, in this order. Bring each decision
 to the learner as a short numbered menu with your recommended choice first, and wait.
 
+### Before the first question
+
+Open a new subject with a short bulleted list of what planning will ask for, so the learner
+sees all of it at once and can fetch anything they want to have ready. One line each, in
+plain words, no more than six bullets:
+
+- what the plan is built from (a spec, syllabus or exam guide if they have one, or only
+  the topic);
+- why they are studying it;
+- what "done" looks like for them;
+- a target date, if they want one;
+- the sources they already trust, if any. Say plainly that they do not need to bring
+  any: you can look for the authoritative sources yourself and show them the list to
+  accept, remove from or add to.
+
+Say that only the topic is needed to begin, that anything else can be skipped or given
+later, and that a study root is set up first when there is none yet. Then ask the first
+question. Leave out a bullet the learner has already answered. Show the list once per new
+subject, never when resuming one.
+
 ### 1. The brief
 
 Run `new-subject.sh` (see the skill's section 3), then fill in `brief.md` in the shape

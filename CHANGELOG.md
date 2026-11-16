@@ -3,7 +3,9 @@
 All notable changes to `techtrip-education` are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [0.2.0] - 2026-11-16
+
+First public release, listed in the TechTrip-AI-plugins catalog.
 
 ### Added
 - `write-config.sh --register <directory>` adds a study root that already exists, such as
@@ -14,6 +16,15 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
   read, and, when the study root is a git repository, an unfinished merge, changes not
   committed and commits not pushed. They report and stop nothing.
 - "More than one machine" in `references/config-keys.md`.
+- A new subject opens with a short bulleted list of what planning will ask for (what the
+  plan is built from, the mission, what done means, an optional target date, sources), so
+  the learner sees it all before the first question. Only the topic is needed to begin, and
+  the list says the skill can look for sources itself.
+- README: Gemini CLI section says what linking does, records the 2026-11-16 test with
+  Gemini CLI 0.68.0, and notes that the CLI needs its own sign-in (an API key with billing
+  or credit in that test).
+- README opens with the education banner (`img/FellowshipOfTheAgents-Education.png`) and
+  gives the catalog install; installing a clone is now under "Developing".
 
 ### Changed
 - The tour skill is `study-orientation`; it was `brain-dump`. Each TechTrip plugin now names

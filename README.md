@@ -1,15 +1,14 @@
 # techtrip-education
 
 <p align="center">
-  <img src="img/FellowshipOfTheAgents.png" alt="techtrip-education" width="100%" />
+  <img src="img/FellowshipOfTheAgents-Education.png" alt="techtrip-education: a study partner for certifications, training and any topic, from TechTrip AI" width="100%" />
 </p>
 
-**Pre-release. Private. Not yet in the TechTrip catalog.** TechTrip AI's education skills,
-one plugin for the whole domain. It starts with a study partner for certifications,
-training and any topic you want to learn. It keeps its place in every subject for as long
-as you study it, and picks up where you left off days later or from a different AI tool. It
-will be listed in [TechTrip-AI-plugins](https://github.com/TechTripAi/TechTrip-AI-plugins)
-when it is ready to ship; until then it is installed from a local checkout.
+**TechTrip AI's education skills, one plugin for the whole domain.** It starts with a study
+partner for certifications, training and any topic you want to learn. It keeps its place in
+every subject for as long as you study it, and picks up where you left off days later or
+from a different AI tool. It is installed from the
+[TechTrip-AI-plugins](https://github.com/TechTripAi/TechTrip-AI-plugins) catalog.
 
 ## How it works
 
@@ -58,24 +57,14 @@ How you use it is up to you. The plugin sets no limits on the kind of help you a
 
 ## Install
 
-Until the plugin is listed in the catalog there is one route for Claude Code: clone the
-private repo and register the checkout as its own marketplace. The plugin then loads **in
-place**: edits apply at the next session start or after `/reload-plugins`, with no version
-bump.
-
-```
-git clone git@github.com:TechTripAi/techtrip-education.git
-claude plugin marketplace add /path/to/techtrip-education
-claude plugin install techtrip-education@techtrip-education
-```
-
-Once it is released, the install is the same as every TechTrip plugin:
-
 ```
 /plugin marketplace add TechTripAi/TechTrip-AI-plugins
 /plugin install techtrip-education@TechTrip-AI-plugins
 /techtrip-education:study-orientation
 ```
+
+The first line registers the TechTrip catalog, the second installs the plugin, the third
+starts its tour.
 
 ## Other AI tools
 
@@ -90,9 +79,19 @@ for s in study-partner study-orientation; do
 done
 ```
 
-For Gemini CLI: `gemini skills link /path/to/techtrip-education/skills`. Do not keep a
-second copy of a skill in another skills directory; two copies leave the bare name pointing
-at whichever loaded first.
+For Gemini CLI: `gemini skills link /path/to/techtrip-education/skills`. It links both
+skills into `~/.gemini/skills`, asks you to confirm, and picks up later edits without a
+reinstall; `gemini skills list` shows them. Tried with Gemini CLI 0.68.0 on 2026-11-16:
+setting up a study root, planning a subject and creating its ledger worked.
+
+Gemini CLI needs its own sign-in, which this plugin does not set up. In that test a
+personal Google account could no longer sign in to the CLI, and a Gemini API key on the
+free tier ran out of its daily allowance before one planning run finished; a key with
+billing or credit worked. Google changes these terms, so follow its current instructions
+(https://ai.google.dev/gemini-api/docs/api-key) and never put the key in a study root.
+
+Do not keep a second copy of a skill in another skills directory; two copies leave the bare
+name pointing at whichever loaded first.
 
 A study root set up in one tool works in the others. Its files are plain text, and the
 registry of study roots (`~/.study-roots`) is per user, not per tool.
@@ -116,12 +115,23 @@ CI matrix is green.
 ## Updating
 
 ```
-git -C /path/to/techtrip-education pull
+/plugin update techtrip-education@TechTrip-AI-plugins
 ```
 
-then `/reload-plugins` in a running session, or start a new one.
+then `/reload-plugins` in a running session, or start a new one. Skills linked from a clone
+into another tool update with `git pull` in the clone.
 
 ## Developing
+
+To work on the plugin, register a clone as its own marketplace. It then loads in place:
+edits apply at the next session start or after `/reload-plugins`, with no version bump. Do
+not keep this and the catalog install side by side.
+
+```
+git clone https://github.com/TechTripAi/techtrip-education.git
+claude plugin marketplace add /path/to/techtrip-education
+claude plugin install techtrip-education@techtrip-education
+```
 
 ```
 bash scripts/check.sh      # syntax, frontmatter, versions, manifest validation, tests

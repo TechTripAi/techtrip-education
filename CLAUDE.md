@@ -13,11 +13,12 @@ education skills are added beside them over time.
 
 One tree carries an Agent Plugins 1.0.0 manifest at `plugin.json`, a Claude Code manifest at
 `.claude-plugin/plugin.json`, and plain `skills/<name>/SKILL.md` folders (Agent Skills
-format). Pre-release, private, not yet in the TechTrip catalog.
+format). Released; listed in the TechTrip catalog as `techtrip-education`, category
+`education`. Users install it from there (README "Install").
 
-Install while unreleased:
+Install a checkout for development (it loads in place):
 ```
-git clone git@github.com:TechTripAi/techtrip-education.git
+git clone https://github.com/TechTripAi/techtrip-education.git
 claude plugin marketplace add /path/to/techtrip-education
 claude plugin install techtrip-education@techtrip-education
 ```
@@ -185,14 +186,13 @@ claude --plugin-dir .               # then talk to it in a scratch study root
 
 Bump `version` in both manifests and in the entry in `.claude-plugin/marketplace.json`, add
 the CHANGELOG section, run `check.sh`, commit locally with a plain message (no attribution
-lines). The owner pushes. The catalog entry in TechTrip-AI-plugins is added at first
-release, not before; from then on the catalog entry's `version` is updated after every
-release here.
+lines). The owner pushes. After every release here, the entry's `version` in the
+TechTrip-AI-plugins catalog is set to the same string.
 
 ## Meta
 
 - License: **FSL-1.1-MIT** (`LICENSE.md`). Copyright 2026 Terry Trippany (Try AI Solutions).
-- Owner/repo: `TechTripAi/techtrip-education` (private until release).
+- Owner/repo: `TechTripAi/techtrip-education` (public).
 - Packaging, naming and release rules for every TechTrip plugin:
   https://github.com/TechTripAi/TechTrip-AI-plugins/blob/main/docs/packaging.md
   (the catalog's `docs/packaging.md`). Follow it; do not restate it here.
