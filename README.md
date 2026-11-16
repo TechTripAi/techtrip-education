@@ -84,6 +84,28 @@ It asks which tools to install for. `-g` installs for your user account; leave i
 install into the current project only. Requires Node.js. `npx skills update -g` picks up
 later releases.
 
+To install for one tool only:
+
+- **Gemini CLI only.** Gemini CLI installs from the repository itself, into
+  `~/.gemini/skills`, which no other tool reads:
+
+  ```
+  gemini skills install https://github.com/TechTripAi/techtrip-education.git --path skills
+  ```
+
+  Add `--scope workspace` to install into the current project only. Requires Gemini CLI
+  0.68.0 or later.
+
+- **Cursor only.** Name the tool with `-a`:
+
+  ```
+  npx skills add TechTripAi/techtrip-education -g -a cursor
+  ```
+
+  With `-g` the skills go to `~/.agents/skills`, a shared folder that other tools also
+  read. To keep them to Cursor in one project, leave `-g` off and run the command in that
+  project.
+
 Gemini CLI uses its own authentication, which this plugin does not configure. Set it up
 with a Gemini API key on a project that has billing enabled; the free tier's daily request
 limit is too low for a planning session. See
