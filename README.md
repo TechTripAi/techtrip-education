@@ -1,7 +1,7 @@
 # techtrip-education
 
 <p align="center">
-  <img src="img/FellowshipOfTheAgents-Education.png" alt="techtrip-education: a study partner for certifications, training and any topic, from TechTrip AI" width="100%" />
+  <img src="img/FellowshipOfTheAgents-bold-Education.png" alt="techtrip-education: a study partner for certifications, training and any topic, from TechTrip AI" width="100%" />
 </p>
 
 > **Status: currently under test as a first release, RC1 (version 0.2.0).** It works and is
