@@ -73,24 +73,16 @@ starts its tour.
 ## Other AI tools
 
 The two folders under `skills/` are plain Agent Skills, and `study-partner` carries its own
-scripts, role guidance and format references, so it works wherever a skill folder can be
-linked or copied.
+scripts, role guidance and format references, so it works in any tool that reads a skills
+folder. One command installs both skills for Cursor, Codex, Gemini CLI and other tools:
 
 ```
-mkdir -p ~/.cursor/skills
-for s in study-partner study-orientation; do
-  ln -s /path/to/techtrip-education/skills/$s ~/.cursor/skills/$s
-done
+npx skills add TechTripAi/techtrip-education -g
 ```
 
-For Gemini CLI, link the skill folders from a clone of this repository:
-
-```
-gemini skills link /path/to/techtrip-education/skills
-```
-
-This links both skills into `~/.gemini/skills` and picks up later changes without a
-reinstall. `gemini skills list` shows them. Requires Gemini CLI 0.68.0 or later.
+It asks which tools to install for. `-g` installs for your user account; leave it off to
+install into the current project only. Requires Node.js. `npx skills update -g` picks up
+later releases.
 
 Gemini CLI uses its own authentication, which this plugin does not configure. Set it up
 with a Gemini API key on a project that has billing enabled; the free tier's daily request
@@ -126,8 +118,8 @@ CI matrix is green.
 /plugin update techtrip-education@TechTrip-AI-plugins
 ```
 
-then `/reload-plugins` in a running session, or start a new one. Skills linked from a clone
-into another tool update with `git pull` in the clone.
+then `/reload-plugins` in a running session, or start a new one. In other tools, run
+`npx skills update -g`.
 
 ## Developing
 
@@ -145,6 +137,11 @@ claude plugin install techtrip-education@techtrip-education
 bash scripts/check.sh      # syntax, frontmatter, versions, manifest validation, tests
 claude plugin validate .   # Claude Code's own manifest check
 ```
+
+To try a clone in another tool, link its skill folders in place of the `npx` install:
+`gemini skills link /path/to/techtrip-education/skills` for Gemini CLI (0.68.0 or later), or
+symlink each folder under `skills/` into the tool's skills directory, such as
+`~/.cursor/skills/`.
 
 Maintainer conventions are in `docs/conventions.md`; decisions about this repository are in
 `docs/decisions/`.

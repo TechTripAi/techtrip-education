@@ -21,8 +21,8 @@ candidate 1 (RC1); the README says so.
   plan is built from, the mission, what done means, an optional target date, sources), so
   the learner sees it all before the first question. Only the topic is needed to begin, and
   the list says the skill can look for sources itself.
-- README: Gemini CLI instructions (linking the skills, the minimum CLI version, and
-  authentication with an API key).
+- README: one-command install for Cursor, Codex, Gemini CLI and other tools
+  (`npx skills add`), and Gemini CLI authentication with an API key.
 - README opens with the education banner (`img/FellowshipOfTheAgents-Education.png`) and
   gives the catalog install; installing a clone is now under "Developing".
 
