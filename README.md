@@ -83,16 +83,20 @@ for s in study-partner study-orientation; do
 done
 ```
 
-For Gemini CLI: `gemini skills link /path/to/techtrip-education/skills`. It links both
-skills into `~/.gemini/skills`, asks you to confirm, and picks up later edits without a
-reinstall; `gemini skills list` shows them. Tried with Gemini CLI 0.68.0 on 2026-11-16:
-setting up a study root, planning a subject and creating its ledger worked.
+For Gemini CLI, link the skill folders from a clone of this repository:
 
-Gemini CLI needs its own sign-in, which this plugin does not set up. In that test a
-personal Google account could no longer sign in to the CLI, and a Gemini API key on the
-free tier ran out of its daily allowance before one planning run finished; a key with
-billing or credit worked. Google changes these terms, so follow its current instructions
-(https://ai.google.dev/gemini-api/docs/api-key) and never put the key in a study root.
+```
+gemini skills link /path/to/techtrip-education/skills
+```
+
+This links both skills into `~/.gemini/skills` and picks up later changes without a
+reinstall. `gemini skills list` shows them. Requires Gemini CLI 0.68.0 or later.
+
+Gemini CLI uses its own authentication, which this plugin does not configure. Set it up
+with a Gemini API key on a project that has billing enabled; the free tier's daily request
+limit is too low for a planning session. See
+[Google's API key instructions](https://ai.google.dev/gemini-api/docs/api-key). Never store
+the key in a study root.
 
 Do not keep a second copy of a skill in another skills directory; two copies leave the bare
 name pointing at whichever loaded first.
