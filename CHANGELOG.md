@@ -5,7 +5,8 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [0.2.0] - 2026-11-16
 
-First public release, listed in the TechTrip-AI-plugins catalog.
+First public release, listed in the TechTrip-AI-plugins catalog. Under test as release
+candidate 1 (RC1); the README says so.
 
 ### Added
 - `write-config.sh --register <directory>` adds a study root that already exists, such as

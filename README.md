@@ -4,6 +4,10 @@
   <img src="img/FellowshipOfTheAgents-Education.png" alt="techtrip-education: a study partner for certifications, training and any topic, from TechTrip AI" width="100%" />
 </p>
 
+> **Status: currently under test as a first release, RC1 (version 0.2.0).** It works and is
+> installable, but expect rough edges and changes while it is being tried on real study
+> subjects. Reports of anything that goes wrong are welcome as issues on this repository.
+
 **TechTrip AI's education skills, one plugin for the whole domain.** It starts with a study
 partner for certifications, training and any topic you want to learn. It keeps its place in
 every subject for as long as you study it, and picks up where you left off days later or
