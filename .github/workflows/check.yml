@@ -1,7 +1,10 @@
 # Windows is "supported" only while this matrix is green.
 name: check
+# Runs once on a pull request and once when it lands on main. Tags and other branch pushes
+# do not start it; main accepts changes only through a pull request with these jobs green.
 on:
   push:
+    branches: [main]
   pull_request:
 jobs:
   check:
