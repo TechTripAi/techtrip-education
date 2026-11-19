@@ -50,6 +50,7 @@ plugin are in the catalog's `docs/packaging.md` and are not repeated here.
 | `progress.md`, statuses and review suggestions | `progress-format.md` |
 | `overview.md` | `overview-format.md` |
 | The packet, export, close and reopen | `packet-format.md` |
+| Checkpoints: the offer, saving, looking back, bringing back | `checkpoints.md` |
 
 ## Scripts
 - `#!/usr/bin/env bash`, `set -eu`, no arrays (macOS ships bash 3.2), POSIX tools only.
@@ -59,7 +60,9 @@ plugin are in the catalog's `docs/packaging.md` and are not repeated here.
 - Date arithmetic goes through `date_add` in `lib/resolve.sh`, never the local `date`
   command's own options.
 - Never overwrite a learner's file without `--force`; never delete anything from a study
-  root; never `git push`; never write secrets.
+  root; never push, pull, fetch or add a remote; never write secrets.
+- No `case` statement inside a `$( )` command substitution: bash 3.2 cannot parse it. Put
+  it in a function and call that.
 - A function that resolves a subject runs in a command substitution. Call
   `load_root_for <subject-dir>` afterwards when the script needs the study root's settings.
 - A usage comment at the top of every script: what it does, usage, exit codes.

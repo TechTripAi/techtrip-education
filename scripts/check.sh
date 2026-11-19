@@ -93,6 +93,19 @@ else
     warn "node not on PATH; skipped manifest checks"
 fi
 
+# 3a. the Claude Code hooks file parses, and every script it calls exists
+if [ -f hooks/hooks.json ] && command -v node >/dev/null 2>&1; then
+    if node -e 'JSON.parse(require("fs").readFileSync("hooks/hooks.json","utf8"))' 2>/dev/null; then ok "hooks/hooks.json parses"; else fail "hooks/hooks.json is not valid JSON"; fi
+    for s in $(grep -oE 'CLAUDE_PLUGIN_ROOT\}/[A-Za-z0-9_./-]+\.sh' hooks/hooks.json | sed 's|^CLAUDE_PLUGIN_ROOT}/||' | sort -u); do
+        [ -f "$s" ] && ok "hooks: $s exists" || fail "hooks/hooks.json calls $s, which does not exist"
+    done
+fi
+
+# 3c. no script reaches another machine
+if grep -nE '(git|cp_git)[^#|]*[[:space:]](push|pull|fetch|clone|remote[[:space:]]+add)([[:space:]]|$)' skills/*/scripts/*.sh skills/*/scripts/lib/*.sh >/dev/null 2>&1; then
+    fail "a script pushes, pulls, fetches, clones or adds a remote"
+else ok "no script pushes, pulls, fetches, clones or adds a remote"; fi
+
 # 3b. incubator never referenced by manifests
 if grep -q incubator .claude-plugin/plugin.json plugin.json 2>/dev/null; then fail "manifests reference incubator/"; else ok "manifests do not reference incubator/"; fi
 

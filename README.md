@@ -4,7 +4,7 @@
   <img src="img/FellowshipOfTheAgents-bold-Education.png" alt="techtrip-education: a study partner for certifications, training and any topic, from TechTrip AI" width="100%" />
 </p>
 
-> **Status: currently under test as a first release, RC1 (version 0.2.2).** It works and is
+> **Status: currently under test as a first release, RC1 (version 0.3.0).** It works and is
 > installable, but expect rough edges and changes while it is being tried on real study
 > subjects. Reports of anything that goes wrong are welcome as issues on this repository.
 
@@ -39,6 +39,11 @@ accept or decline.
 and quizzes are plain Markdown. Export the packet at any time; closing a subject makes a
 final export and archives it. The packet opens in any Markdown tool.
 
+**It can keep checkpoints.** Say yes when it asks, and it keeps a history of your study
+files on your own computer, saving one each time you finish a sitting. Then "show me my
+notes from last week" and "undo today's changes" work. It is off until you say yes, and
+you do not need to know how it is done.
+
 You talk in plain words, or pick from the short menus it shows:
 
 - "I want to study Rust, plan it from scratch"
@@ -48,6 +53,8 @@ You talk in plain words, or pick from the short menus it shows:
 - "add this book as a source"
 - "show my subjects"
 - "export my aws packet"
+- "pause here"
+- "show me this lesson as it was on Monday"
 
 How you use it is up to you. The plugin sets no limits on the kind of help you ask for.
 
@@ -127,13 +134,21 @@ machine, or when a file was changed in two places, and stops nothing.
 ## What it writes
 
 Only inside the study root you choose: `study.config`, `overview.md`, the subject folders,
-and the `packets` and `archive` folders. Plus one line per study root in `~/.study-roots`. Nothing leaves your machine, and
-no secret is ever written to a file.
+and the `packets` and `archive` folders. Plus one line per study root in `~/.study-roots`.
+With checkpoints on, the history is a `.git` folder and a `.gitignore` file inside the study
+root. Nothing leaves your machine: the plugin never pushes, pulls or contacts another
+computer. No secret is ever written to a file.
+
+In Claude Code the plugin also runs two small hooks, which do nothing unless the session
+was started inside a study root: one passes on what the scripts have to say about the
+study root when a session starts, the other saves a checkpoint when a session closes, if
+checkpoints are on.
 
 ## Requirements
 
 `bash`, `awk`, `sed`, `grep`, `sort`. macOS and Linux; Windows through Git Bash while the
-CI matrix is green.
+CI matrix is green. `git` only if you turn checkpoints on; without it they are never
+offered.
 
 ## Updating
 

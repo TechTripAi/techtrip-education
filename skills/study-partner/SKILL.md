@@ -46,6 +46,10 @@ in plain words and carry on with what they asked for; resolving and syncing are 
 do or to ask for. When a note says to update the plugin, give the update command for the
 tool you are running in. See "More than one machine" in `references/config-keys.md`.
 
+A line that starts `overview: offer:` means checkpoints, a history of the study files, can
+be kept and the learner has not been asked. Ask once, as `references/checkpoints.md` says,
+and record the answer either way.
+
 ## 2. Menus
 
 When the request is open ("let's study", a bare subject name, nothing specific), show a
@@ -121,6 +125,8 @@ Whenever a piece of work finishes, and always before the session ends:
    last session date and the machine it was recorded on.
 4. New terms in `glossary.md`.
 5. `bash <scripts>/overview.sh`, so the view across subjects is current.
+6. `bash <scripts>/checkpoint.sh --message "<subject>: <what was done, in one line>"`. It
+   saves a checkpoint when the learner has turned them on, and does nothing otherwise.
 
 Read the matching file in `references/` before you write `brief.md`, `sources.md`,
 `plan.md`, a quiz file or `progress.md` for the first time in a session; scripts parse
@@ -146,3 +152,6 @@ one. Then show the menu for the subject, or carry on with what the learner names
 `bash <scripts>/check-root.sh` reports the health of the study root and is safe to run at
 any time. With `--upgrade` it brings a study root written by an older version up to date;
 offer that when a note says the root is in an older format.
+
+When the learner asks to see an earlier version of a file, to bring one back or to undo
+changes, read `references/checkpoints.md`.

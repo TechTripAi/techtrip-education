@@ -65,7 +65,7 @@ find_config() {
 load_config() {
     ST_CONFIG="$1"
     ST_ROOT="$(cd "$(dirname "$1")" && pwd)"
-    SUBJECTS_DIR=""; STUDY_NAME=""; LEARNER_NAME=""; REVIEW_INTERVALS=""; STUDY_FORMAT=""
+    SUBJECTS_DIR=""; STUDY_NAME=""; LEARNER_NAME=""; REVIEW_INTERVALS=""; STUDY_FORMAT=""; AUTO_CHECKPOINT=""
     # shellcheck disable=SC1090
     . "$1"
     : "${SUBJECTS_DIR:=subjects}"
@@ -173,6 +173,56 @@ sync_notes() {
     sn_n="$(git -C "$sn_root" rev-list --count '@{u}..HEAD' 2>/dev/null)" || sn_n=0
     [ "${sn_n:-0}" -eq 0 ] || printf 'WARN%s%s saved checkpoint(s) have not been sent to your other machines yet (git: not pushed)\n' "$sn_tab" "$sn_n"
     return 0
+}
+
+# --- checkpoints ---------------------------------------------------------------------------
+# A checkpoint is a saved copy of the whole study root in a history kept inside it, so an
+# earlier version of any file can be brought back. Git is the engine and the learner never
+# has to know that. AUTO_CHECKPOINT in study.config: '1' on, '0' the learner said no, empty
+# never asked. Nothing here pushes, pulls or contacts another machine.
+
+# cp_git <args>: git, on the loaded study root
+cp_git() { git -C "$ST_ROOT" "$@"; }
+
+# cp_is_repo: true when the study root is the top of its own git repository
+cp_is_repo() {
+    cp_up="$(git -C "$ST_ROOT" rev-parse --show-cdup 2>/dev/null)" || return 1
+    [ -z "$cp_up" ]
+}
+
+# cp_blocker: why checkpoints cannot be kept for the loaded study root, as
+# "kind<TAB>reason in plain words", or nothing when they can. Kinds: no-git, sync-folder,
+# nested. A history kept inside a folder that a file-sync service copies about can be
+# damaged by it, so the common ones are recognised by their folder names.
+cp_blocker() {
+    cb_tab="$(printf '\t')"
+    command -v git >/dev/null 2>&1 || { printf 'no-git%sgit is not installed on this machine\n' "$cb_tab"; return 0; }
+    cb_p="$(cd "$ST_ROOT" && pwd -P)/"
+    case "$cb_p" in
+        */Library/Mobile\ Documents/*|*/Library/CloudStorage/*|*/iCloud\ Drive/*|*/iCloudDrive/*|\
+        */Dropbox/*|*/Dropbox\ \(*\)/*|*/OneDrive/*|*/OneDrive\ -\ */*|*/OneDrive-*/*|\
+        */Google\ Drive/*|*/GoogleDrive/*|*/My\ Drive/*|*/Box/*|*/Box\ Sync/*|\
+        */pCloud\ Drive/*|*/pCloudDrive/*|*/Sync/*)
+            printf 'sync-folder%sthe study root is inside a folder that a file-sync service keeps copied, and that service already keeps your files backed up; a second history kept there can be damaged by it\n' "$cb_tab"; return 0 ;;
+    esac
+    cb_up="$(git -C "$ST_ROOT" rev-parse --show-cdup 2>/dev/null)" || return 0
+    [ -z "$cb_up" ] || printf 'nested%sthe study root is inside a larger folder that already keeps its own history (a git repository)\n' "$cb_tab"
+    return 0
+}
+
+# cp_state: where checkpoints stand for the loaded study root, on one line:
+#   on | off | not-asked | unavailable<TAB>kind<TAB>reason | broken<TAB>kind<TAB>reason
+# unavailable: never turned on and cannot be. broken: turned on, and cannot be saved here.
+cp_state() {
+    cs_tab="$(printf '\t')"
+    cs_b="$(cp_blocker)"
+    case "$AUTO_CHECKPOINT" in
+        1) if [ -n "$cs_b" ]; then printf 'broken%s%s\n' "$cs_tab" "$cs_b"
+           elif ! cp_is_repo; then printf 'broken%sno-history%sthis copy of the study root has no history yet\n' "$cs_tab" "$cs_tab"
+           else echo on; fi ;;
+        0) echo off ;;
+        *) if [ -n "$cs_b" ]; then printf 'unavailable%s%s\n' "$cs_tab" "$cs_b"; else echo not-asked; fi ;;
+    esac
 }
 
 # kebab <text>: lowercase, non-alphanumerics to "-", at most 40 characters
