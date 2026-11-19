@@ -178,6 +178,21 @@ is written down:
 pause here
 ```
 
+If the study partner has asked whether to keep a history of your study files and you said
+yes, each sitting is saved as a checkpoint on your own computer, and you can ask for
+earlier versions back. You can also ask for it at any time:
+
+**Prompt: type into your AI tool**
+```
+turn on checkpoints for my study files
+show me <file> as it was on <date>
+undo today's changes to <subject>
+```
+
+It asks before bringing anything back, and it saves the present state first.
+`references/checkpoints.md` has the detail. Checkpoints are not kept when the study root is
+in a file-sync folder such as iCloud Drive or Dropbox, which keep their own copies.
+
 On another machine, put the study root folder there with anything that keeps it an
 ordinary folder (a sync service, a network share, a private git repository) and register
 it once (section 12, `write-config.sh --register`). Work on a subject from one machine at a
@@ -222,6 +237,9 @@ bash <skill folder>/scripts/write-config.sh --register <study root folder>
 
 Expect: every subject on one line each; the steps suggested for review; how the remaining
 steps sit against the target date; a health table; the folder of one subject.
+
+`checkpoint.sh --status` says whether checkpoints are on, and `checkpoint.sh --list` shows
+the ones saved; both only read.
 
 `export-packet.sh "<subject>"` and `close-subject.sh "<subject>"` are also safe to run
 yourself; the first changes nothing in the subject, the second moves it to the archive.

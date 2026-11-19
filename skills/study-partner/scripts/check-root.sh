@@ -90,5 +90,13 @@ else
 $notes
 NOTES
 fi
+cps="$(cp_state)"
+case "$cps" in
+    on) row PASS "checkpoints" "on; $(cp_git rev-list --count HEAD 2>/dev/null || echo 0) saved" ;;
+    off) row PASS "checkpoints" "off" ;;
+    not-asked) row PASS "checkpoints" "not turned on; checkpoint.sh --enable turns them on" ;;
+    unavailable*) row PASS "checkpoints" "not kept here: $(printf '%s' "$cps" | cut -f3)" ;;
+    broken*) row WARN "checkpoints" "turned on, and cannot be saved here: $(printf '%s' "$cps" | cut -f3)" ;;
+esac
 echo
 if [ "$fails" -gt 0 ]; then echo "check-root: $fails failure(s)"; exit 1; else echo "check-root: ok"; fi

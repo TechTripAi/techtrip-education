@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "command",
+        "bash": "d=\"${PLUGIN_ROOT:-${COPILOT_PLUGIN_ROOT:-}}\"; s=\"$d/skills/study-partner/scripts/session-hook.sh\"; if [ -f \"$s\" ]; then bash \"$s\" start; fi; exit 0",
+        "timeoutSec": 15
+      }
+    ],
+    "sessionEnd": [
+      {
+        "type": "command",
+        "bash": "d=\"${PLUGIN_ROOT:-${COPILOT_PLUGIN_ROOT:-}}\"; s=\"$d/skills/study-partner/scripts/session-hook.sh\"; if [ -f \"$s\" ]; then bash \"$s\" end; fi; exit 0",
+        "timeoutSec": 30
+      }
+    ]
+  }
+}

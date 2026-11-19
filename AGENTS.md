@@ -58,14 +58,19 @@ worked one step at a time, with all state in plain files.
     glossary, sources).
   - `references/`: every file format, once: `config-keys.md`, `brief-format.md`,
     `sources-format.md`, `plan-format.md`, `lesson-format.md`, `quiz-format.md`,
-    `progress-format.md`, `overview-format.md`, `packet-format.md`.
+    `progress-format.md`, `overview-format.md`, `packet-format.md`, `checkpoints.md`.
   - `scripts/`: `lib/resolve.sh` (sourced by every script), `write-config.sh`,
     `new-subject.sh`, `resolve-subject.sh`, `init-progress.sh`, `set-step.sh`,
     `record-review.sh`, `record-session.sh`, `open-lesson.sh`, `reviews.sh`,
-    `overview.sh`, `pace.sh`, `export-packet.sh`, `close-subject.sh`, `check-root.sh`.
+    `overview.sh`, `pace.sh`, `export-packet.sh`, `close-subject.sh`, `check-root.sh`,
+    `checkpoint.sh`, `session-hook.sh`.
 - `skills/study-orientation/SKILL.md`: the tour. Teaches, never executes, never restates a
   format.
-- `incubator/<name>/` for unpromoted skills. Manifests never see it.
+- `hooks/hooks.json`: Claude Code session hooks. Both call
+  `skills/study-partner/scripts/session-hook.sh`, which does nothing outside a study root.
+  The other tools have no hooks from this plugin and rely on the skill's own steps.
+- `incubator/<name>/` for unpromoted work. Manifests never see it. `copilot-hooks/` is a
+  Copilot CLI hooks file that has not been tried on an installed copy.
 - `docs/` for maintainer documents; `docs/decisions/` for ADRs about this repo.
 - `scripts/check.sh` is the health check. Run it before every commit. `tests/*.sh` are run
   by it and by CI on ubuntu, macos and windows.
@@ -121,6 +126,14 @@ chooses.
   `index.md`; it can be run at any time and never touches the subject. `close-subject.sh`
   marks the brief closed, exports, and moves the subject to `archive/`; `--reopen` reverses
   the move. Nothing is ever deleted.
+- Checkpoints (`docs/decisions/ADR-002`) are a git history inside the study root, opt-in
+  per root through `AUTO_CHECKPOINT` in `study.config`: `1` on, `0` declined, absent never
+  asked. `cp_state` in `lib/resolve.sh` is the one place that decides where they stand;
+  `checkpoint.sh` enables, saves, lists, shows and restores. `overview.sh` prints one
+  `overview: offer:` line while they could be kept and the learner has not been asked.
+  They are refused inside a file-sync folder and inside another repository.
+- `session-hook.sh start|end` finds the study root by walking up from the session's
+  directory only, never through the registry, and always exits 0.
 - Date arithmetic is done in awk inside `lib/resolve.sh`, so it behaves the same with BSD
   `date`, GNU `date` and Git Bash. `$STUDY_TODAY` overrides today's date; the tests use it.
 
@@ -173,7 +186,10 @@ Always set `STUDY_ROOTS` to a scratch file when testing, so the real registry is
   CHANGELOG's first `## [x.y.z]` heading matches.
 - Scripts: `#!/usr/bin/env bash`, `set -eu`, no arrays (macOS bash 3.2), POSIX tools,
   `SCRIPT_DIR` via `pwd -P`, CR stripped when parsing, never overwrite a learner's file
-  without `--force`, never `git push`, never write a secret. No CR line endings in tracked
+  without `--force`, never write a secret. No script pushes, pulls, fetches or adds a
+  remote. No `case` inside `$( )` (bash 3.2 cannot parse it); use a function.
+- Text a learner may see never needs git knowledge: checkpoint, history, earlier version.
+  Git is never required and no text tells a learner to install it. No CR line endings in tracked
   text.
 - No personal names, subject names or paths inside a skill; they belong in the learner's
   study root.

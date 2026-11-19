@@ -3,6 +3,36 @@
 All notable changes to `techtrip-education` are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.3.0] - 2026-11-19
+
+### Added
+- **Checkpoints.** A history of the study root's files, kept inside it, so an earlier
+  version of anything can be looked at or brought back. Off until the learner says yes; the
+  study partner asks once, in plain words, and records the answer in `study.config`
+  (`AUTO_CHECKPOINT`). Git is the engine and the learner does not need to know it.
+  - `checkpoint.sh` turns them on and off, saves one, lists them, prints a file as it was
+    on a day, and brings a file, a folder or the whole root back. Bringing back saves the
+    present state first and deletes nothing.
+  - The study partner saves a checkpoint when it records a session.
+  - They are never offered where they cannot be kept: git not installed, a study root
+    inside a file-sync folder (iCloud Drive, Dropbox, OneDrive, Google Drive and others,
+    recognised by folder name), or inside another git repository.
+  - With no git identity set, a save uses the learner's name from `study.config`, so a
+    first checkpoint cannot fail on that.
+  - Nothing pushes, pulls, fetches or adds a remote.
+- Claude Code session hooks (`hooks/hooks.json`). At session start, what the scripts note
+  about the study root is passed to the session; at session end a checkpoint is saved if
+  they are on. Both act only when the session was started inside a study root.
+- `check-root.sh` has a `checkpoints` row; `overview.sh` prints an `overview: offer:` line
+  while checkpoints could be kept and have not been offered, and a note when they are on
+  and cannot be saved on this machine.
+- `references/checkpoints.md`, `tests/checkpoints.sh`, `docs/decisions/ADR-002`.
+
+### Not included
+- Session hooks for Copilot CLI. A draft is in `incubator/copilot-hooks/` with what has to
+  be confirmed on an installed copy first. Copilot CLI and every other tool save
+  checkpoints through the study partner's own step when a session is recorded.
+
 ## [0.2.2] - 2026-11-19
 
 ### Added

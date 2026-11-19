@@ -235,7 +235,7 @@ is "--register changes nothing in the root" "$(cat "$C/study.config")" "$before"
 is "the first machine's registry is untouched" "$(cat "$STUDY_ROOTS")" "me=$R/study.config"
 is "a registered copy resolves from any directory" "$(cd / && STUDY_ROOTS="$T/registry2" bash "$S/resolve-subject.sh" rust)" "$C/subjects/rust"
 has "a clean root has nothing to report" "$(bash "$S/check-root.sh" "$C")" "PASS  sync"
-is "a clean root gives no overview note" "$(STUDY_ROOTS="$T/registry2" bash "$S/overview.sh" --stdout 2>&1 >/dev/null)" ""
+is "a clean root gives no overview note" "$(STUDY_ROOTS="$T/registry2" bash "$S/overview.sh" --stdout 2>&1 >/dev/null | grep -c 'overview: note:' || true)" 0
 cp "$C/subjects/rust/progress.md" "$C/subjects/rust/progress 2.md"
 echo "x" > "$C/subjects/rust/materials/chapter 2.md"
 note="$(STUDY_ROOTS="$T/registry2" bash "$S/overview.sh" --stdout 2>&1 >/dev/null)"

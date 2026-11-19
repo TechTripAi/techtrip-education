@@ -1,0 +1,26 @@
+{
+  "description": "Study-root hooks for Claude Code. Both do nothing unless the session's directory is inside a study root. SessionStart passes on what the scripts note about the root; SessionEnd saves a checkpoint when the learner has turned checkpoints on. Neither pushes, pulls or contacts another machine.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/skills/study-partner/scripts/session-hook.sh\" start"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/skills/study-partner/scripts/session-hook.sh\" end"
+          }
+        ]
+      }
+    ]
+  }
+}
