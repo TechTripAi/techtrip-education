@@ -71,4 +71,6 @@ plugin are in the catalog's `docs/packaging.md` and are not repeated here.
 3. `bash scripts/check.sh`.
 4. Commit locally with a plain message. The owner pushes.
 5. Set the entry's `version` in TechTrip-AI-plugins to the same string after every release
-   here.
+   here. That entry is what marketplace users of Claude Code and Copilot CLI receive, so a
+   release is not finished until it is set. The catalog's check compares it with the pushed
+   manifest, so it is done after the owner pushes.

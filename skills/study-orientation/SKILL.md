@@ -167,12 +167,24 @@ Nothing needs saving. Name the subject and carry on:
 continue <subject>
 ```
 
-On another machine, sync the study root folder there and register it once (section 12,
-`write-config.sh --register`). Work on a subject from one machine at a time, and sync
-before and after a session. If the same file was changed in two places, the study partner
-says so when it next shows your subjects; "More than one machine" in
-`references/config-keys.md` says what to do. In another AI tool that has this skill, the
-same prompts work, because the state is in the files.
+Start a new chat each time you sit down to study. Everything the study partner needs is in
+the subject's files, so a new chat loses nothing, and a long chat carried over many days
+gets slower and less exact. Go back into an earlier chat only when you were cut off in the
+middle of something, such as a quiz. Before you leave, say you are stopping, so the session
+is written down:
+
+**Prompt: type into your AI tool**
+```
+pause here
+```
+
+On another machine, put the study root folder there with anything that keeps it an
+ordinary folder (a sync service, a network share, a private git repository) and register
+it once (section 12, `write-config.sh --register`). Work on a subject from one machine at a
+time. If a subject was last worked on from another machine, or the same file was changed
+in two places, the study partner says so when it next shows your subjects; "More than one
+machine" in `references/config-keys.md` says what to do. In another AI tool that has this
+skill, the same prompts work, because the state is in the files.
 
 ## Section 11: what is in a subject folder
 
@@ -225,4 +237,7 @@ The plugin is installed from the TechTrip-AI-plugins catalog:
 ```
 
 Update with `/plugin update techtrip-education@TechTrip-AI-plugins`, then start a new
-session. The README in the plugin repository covers other AI tools.
+session. The README in the plugin repository has the update command for Copilot CLI and
+every other tool, under "Updating". Your study files do not need updating when the plugin
+does; if a release ever changes a file format, the study partner says so and offers to
+bring the study root up to date.

@@ -5,9 +5,10 @@
 #
 # Usage: overview.sh [--root <study root name>] [--date YYYY-MM-DD] [--stdout]
 #   --stdout prints the overview and writes nothing.
-# When the study root shows signs of having been changed in two places, or holds work that
-# is not committed or pushed, it says so in "overview: note:" lines on stderr. They are
-# information; the overview is written all the same.
+# When the study root shows signs of having been changed in two places, holds work another
+# machine cannot see yet, or is in a different format from the one these scripts write, it
+# says so in "overview: note:" lines on stderr. They are information; the overview is
+# written all the same.
 # Exit 2: no study root.
 set -eu
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -55,4 +56,4 @@ out="$( {
 } )"
 if [ "$to_stdout" -eq 1 ]; then printf '%s\n' "$out"
 else printf '%s\n' "$out" > "$ST_ROOT/overview.md"; echo "overview: wrote $ST_ROOT/overview.md"; fi
-sync_notes "$ST_ROOT" | cut -f2 | sed 's/^/overview: note: /' >&2
+{ format_note; sync_notes "$ST_ROOT" | cut -f2; } | sed 's/^/overview: note: /' >&2

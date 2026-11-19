@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Build or extend a subject's progress.md from its plan.md.
 # With no progress.md, writes the whole ledger. With one, adds a row for every plan step and
-# checkpoint that is not in it yet and changes nothing else, so a plan can change over time.
+# checkpoint that is not in it yet, and brings the description of an existing checkpoint
+# into line with the plan when the plan's wording changed. A checkpoint's status, every step
+# row and the session entries are never changed, so a plan can change over time.
 #
 # Usage: init-progress.sh <subject ref or directory> [--dry-run]
 # Exit 1: bad usage or a plan that does not parse. Exit 2/4: the subject did not resolve.
@@ -66,20 +68,34 @@ done)"
 newc="$(printf '%s\n' "$cps" | sed '/^$/d' | while IFS="$tab" read -r id text; do
     printf '%s\n' "$havec" | grep -qx -- "$id" || crow "$id" "$text"
 done)"
+# checkpoints already in the ledger whose description no longer matches the plan
+cpmap="$(printf '%s\n' "$cps" | sed '/^$/d')"
+stale="$(checkpoint_rows "$sdir" | while IFS="$tab" read -r id text st; do
+    new="$(printf '%s\n' "$cpmap" | CP_ID="$id" awk -F'\t' '$1==ENVIRON["CP_ID"] { print $2; exit }')"
+    [ -z "$new" ] || [ "$new" = "$text" ] || printf '%s\n' "$id"
+done)"
 added="$(printf '%s\n' "$news" | sed '/^$/d' | wc -l | tr -d ' ')"
 addedc="$(printf '%s\n' "$newc" | sed '/^$/d' | wc -l | tr -d ' ')"
-if [ "$added" -eq 0 ] && [ "$addedc" -eq 0 ]; then echo "init-progress: progress.md already has every step ($count)"; exit 0; fi
+stalec="$(printf '%s\n' "$stale" | sed '/^$/d' | wc -l | tr -d ' ')"
+if [ "$added" -eq 0 ] && [ "$addedc" -eq 0 ] && [ "$stalec" -eq 0 ]; then echo "init-progress: progress.md already has every step ($count)"; exit 0; fi
 if [ "$dry" -eq 1 ]; then
     [ -z "$news" ] || printf '%s\n' "$news"; [ -z "$newc" ] || printf '%s\n' "$newc"
-    echo "init-progress: dry run, nothing written ($added new steps, $addedc new checkpoints)" >&2; exit 0
+    [ "$stalec" -eq 0 ] || echo "would update the description of: $(printf '%s' "$stale" | tr '\n' ' ')"
+    echo "init-progress: dry run, nothing written ($added new steps, $addedc new checkpoints, $stalec checkpoint descriptions to update)" >&2; exit 0
 fi
 tmp="$sdir/progress.md.tmp.$$"
 # The new rows reach awk through the environment: with several rows the value has newlines,
 # which BSD awk (macOS) refuses in a -v assignment, and -v would also rewrite backslashes.
-tr -d '\r' < "$sdir/progress.md" | ADDS="$news" ADDC="$newc" awk '
-    BEGIN { adds=ENVIRON["ADDS"]; addc=ENVIRON["ADDC"] }
-    { lines[NR]=$0
-      if ($0 ~ /^## /) sect=$0
+tr -d '\r' < "$sdir/progress.md" | ADDS="$news" ADDC="$newc" CPMAP="$cpmap" awk '
+    function trim(s){ gsub(/^[ \t]+|[ \t]+$/,"",s); return s }
+    BEGIN { adds=ENVIRON["ADDS"]; addc=ENVIRON["ADDC"]
+            n=split(ENVIRON["CPMAP"], m, "\n")
+            for (i=1;i<=n;i++) { t=index(m[i],"\t"); if (t) want[substr(m[i],1,t-1)]=substr(m[i],t+1) } }
+    { if ($0 ~ /^## /) sect=$0
+      if (sect ~ /^## Checkpoints/ && $0 ~ /^\| *CP-[A-Z]+ *\|/) {
+          k=split($0, c, "|"); id=trim(c[2])
+          if (k>=4 && (id in want) && trim(c[3])!=want[id]) $0="| " id " | " want[id] " | " trim(c[4]) " |" }
+      lines[NR]=$0
       if (sect ~ /^## Steps/ && ($0 ~ /^\| *[A-Z]+[0-9]+ *\|/ || $0 ~ /^\|---/)) lasts=NR
       if (sect ~ /^## Checkpoints/ && ($0 ~ /^\| *CP-[A-Z]+ *\|/ || $0 ~ /^\|---/)) lastc=NR }
     END { for (i=1;i<=NR;i++) { print lines[i]
@@ -88,3 +104,4 @@ tr -d '\r' < "$sdir/progress.md" | ADDS="$news" ADDC="$newc" awk '
     || { rm -f "$tmp"; echo "init-progress: could not add the new rows; progress.md is unchanged" >&2; exit 1; }
 mv "$tmp" "$sdir/progress.md"
 echo "init-progress: added $added new steps and $addedc new checkpoints to $sdir/progress.md"
+[ "$stalec" -eq 0 ] || echo "init-progress: updated the description of $stalec checkpoint(s) to match the plan: $(printf '%s' "$stale" | tr '\n' ' ')"

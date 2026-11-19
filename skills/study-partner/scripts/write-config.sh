@@ -6,7 +6,8 @@
 #        write-config.sh --register <directory>
 #   Keys: STUDY_NAME, SUBJECTS_DIR, LEARNER_NAME, REVIEW_INTERVALS
 # An existing study.config is left alone unless --force is given; with --force, keys that
-# are not passed keep their current values.
+# are not passed keep their current values. STUDY_FORMAT is written by the script and is
+# not a key to pass.
 # --register is for a study root that already exists, such as one copied or synced from
 # another machine: it adds the root to this machine's registry and changes no file in it.
 # Exit 1: bad usage. Exit 2: --register and no study.config in the directory.
@@ -53,6 +54,7 @@ if [ -f "$cfg" ]; then
     load_config "$cfg"
 else
     SUBJECTS_DIR="subjects"; STUDY_NAME="$(kebab "$(basename "$dir")")"; LEARNER_NAME=""; REVIEW_INTERVALS="1 3 7 14 30"
+    STUDY_FORMAT="$STUDY_FORMAT_CURRENT"
 fi
 [ -n "$n_name" ] && STUDY_NAME="$(kebab "$n_name")"
 [ -n "$n_subjects" ] && SUBJECTS_DIR="$n_subjects"
@@ -78,6 +80,9 @@ q() { printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"; }
     echo "# Days until a step is next suggested for review, as it moves up a level after each"
     echo "# review that goes well. After the last level no further review is suggested."
     echo "REVIEW_INTERVALS=$(q "$REVIEW_INTERVALS")"
+    echo
+    echo "# The format of this study root's files. Written by the scripts; leave it alone."
+    echo "STUDY_FORMAT=$(q "$STUDY_FORMAT")"
 } > "$cfg"
 case "$SUBJECTS_DIR" in /*) mkdir -p "$SUBJECTS_DIR" ;; *) mkdir -p "$dir/$SUBJECTS_DIR" ;; esac
 registry_upsert "$STUDY_NAME" "$cfg"
