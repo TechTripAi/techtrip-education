@@ -10,8 +10,20 @@ secret in it: AI tools read this file.
 | `SUBJECTS_DIR` | Where active subject directories live. Relative to the study root unless absolute. | `subjects` |
 | `LEARNER_NAME` | Optional. What the study partner calls the learner. | empty |
 | `REVIEW_INTERVALS` | Days until a step is next suggested for review, as it moves up a level after each review that goes well. After the last level no further review is suggested. | `1 3 7 14 30` |
+| `STUDY_FORMAT` | The format of this study root's files, a whole number. Written by the scripts; not a key to set. A file without it is format 1. | `1` |
 
 Unknown keys are ignored by the scripts.
+
+## Format and upgrades
+
+`STUDY_FORMAT` goes up only when a release changes a file format so that older scripts
+could not read it. The current format is 1, and every release so far reads the files of the
+ones before it.
+
+| The study root is | What the scripts say | What to do |
+|---|---|---|
+| In an older format | A note from `overview.sh`; a `format` WARN row from `check-root.sh` | `check-root.sh --upgrade`. It says what it changes, copies aside any file it rewrites, deletes nothing, and can be run again. |
+| In a newer format than this copy of the plugin | The same note and row, saying to update the plugin | Update the plugin on this machine (README, "Updating"). Nothing is refused meanwhile. |
 
 ## The registry
 
@@ -27,16 +39,18 @@ machine's registry and changes no file in it.
 
 ## More than one machine
 
-A study root can be used from several machines by syncing its folder with any tool: a
-private git repository, or a file-sync service. Everything in it is plain text with
+A study root can be used from several machines by any tool that presents it as an ordinary
+folder of files: a private git repository, a file-sync service, or a network share. A
+notebook application that keeps pages inside its own notebook is not a folder and will not
+do; an exported packet can be read there. Everything in a study root is plain text with
 relative paths, so the folder may sit at a different path on each machine. Keep
 `SUBJECTS_DIR` relative; an absolute value is right on one machine only.
 
 | Step | How |
 |---|---|
 | Once per machine | Sync the folder there, then `write-config.sh --register <directory>`. |
-| Before a session | Bring the folder up to date (for git, pull). |
-| After a session | Send the changes (for git, commit and push). The scripts never commit or push. |
+| Before a session | Bring the folder up to date (for git, pull; a sync service or a share does this itself). |
+| After a session | Send the changes (for git, commit and push). The scripts never push or pull. |
 
 Nothing locks a subject, so the rule is one machine at a time per subject. Different
 subjects on different machines do not collide: only `overview.md` is shared, and it is
@@ -49,6 +63,7 @@ collides is usually `progress.md`.
 |---|---|---|
 | A conflict copy from a sync tool (`*.sync-conflict-*`, `*conflicted copy*`, `<name> 2.md`), outside `materials/` and `packets/` | note, WARN | Compare it with the original, keep what is right, move the copy out of the study root. |
 | Merge markers in `brief.md`, `plan.md`, `progress.md`, `sources.md`, `glossary.md` or `overview.md` | note, FAIL | Resolve them. In `progress.md` keep the row with the later `Last worked` date for each step, and keep every session entry. |
+| A subject's last session was recorded on a different machine (`Last machine` in its `progress.md`) | note, WARN | Check the folder is up to date here, then carry on. The note goes once a session is recorded on this machine. On a network share this is the only sign there is: two machines writing one file leave no copy behind, and the later save wins. |
 | The study root is a git repository with an unfinished merge, changes not committed, or commits not pushed | note, WARN | Finish the merge; commit and push when the session is over. |
 
 `overview.md` and `packets/` are generated. A conflict in either is settled by running

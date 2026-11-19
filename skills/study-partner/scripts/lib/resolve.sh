@@ -9,6 +9,11 @@
 # Registry: $STUDY_ROOTS (default ~/.study-roots), one "name=/abs/path/study.config" per
 # line. Written by write-config.sh. Per machine, per user, never part of the plugin, no secrets.
 
+# The format of a study root's files, as a whole number. It goes up only when a release
+# changes a file format in a way older scripts cannot read; check-root.sh --upgrade then
+# carries a root forward. A study.config with no STUDY_FORMAT line is format 1.
+STUDY_FORMAT_CURRENT=1
+
 registry_file() { printf '%s' "${STUDY_ROOTS:-$HOME/.study-roots}"; }
 
 # registry_lookup <name>: prints the config path for a registered study root, or nothing
@@ -60,13 +65,14 @@ find_config() {
 load_config() {
     ST_CONFIG="$1"
     ST_ROOT="$(cd "$(dirname "$1")" && pwd)"
-    SUBJECTS_DIR=""; STUDY_NAME=""; LEARNER_NAME=""; REVIEW_INTERVALS=""
+    SUBJECTS_DIR=""; STUDY_NAME=""; LEARNER_NAME=""; REVIEW_INTERVALS=""; STUDY_FORMAT=""
     # shellcheck disable=SC1090
     . "$1"
     : "${SUBJECTS_DIR:=subjects}"
     : "${STUDY_NAME:=$(basename "$ST_ROOT")}"
     : "${LEARNER_NAME:=}"
     : "${REVIEW_INTERVALS:=1 3 7 14 30}"
+    case "$STUDY_FORMAT" in ""|*[!0-9]*) STUDY_FORMAT=1 ;; esac
     case "$SUBJECTS_DIR" in /*) ST_SUBJECTS="$SUBJECTS_DIR" ;; *) ST_SUBJECTS="$ST_ROOT/$SUBJECTS_DIR" ;; esac
     ST_ARCHIVE="$ST_ROOT/archive"
     ST_PACKETS="$ST_ROOT/packets"
@@ -96,6 +102,35 @@ load_root_for() {
     if [ -n "$cfg" ] && [ -f "$cfg" ]; then load_config "$cfg"; else return 1; fi
 }
 
+# set_config_key <config-path> <KEY> <value>: replace the KEY= line of a study.config, or
+# add one at the end. Every other line is kept as it is.
+set_config_key() {
+    sk_tmp="$1.tmp.$$"
+    sk_q="'$(printf '%s' "$3" | sed "s/'/'\\\\''/g")'"
+    tr -d '\r' < "$1" | SK_KEY="$2" SK_LINE="$2=$sk_q" awk '
+        BEGIN { k=ENVIRON["SK_KEY"] "="; l=ENVIRON["SK_LINE"] }
+        index($0,k)==1 { if (!done) print l; done=1; next } { print }
+        END { if (!done) print l }' > "$sk_tmp" || { rm -f "$sk_tmp"; return 1; }
+    mv "$sk_tmp" "$1"
+}
+
+# this_machine: a short name for this machine, or $STUDY_MACHINE when set, which the tests use
+this_machine() {
+    tm="${STUDY_MACHINE:-$(hostname 2>/dev/null || uname -n 2>/dev/null || echo unknown)}"
+    tm="$(printf '%s' "$tm" | sed 's/\..*$//' | tr -c 'A-Za-z0-9_-' '-' | sed -E 's/-+/-/g; s/^-//; s/-$//')"
+    printf '%s' "${tm:-unknown}"
+}
+
+# format_note: one line when the loaded study root's format is not the one these scripts
+# write, and nothing when it is. Information only.
+format_note() {
+    if [ "$STUDY_FORMAT" -gt "$STUDY_FORMAT_CURRENT" ]; then
+        printf 'this study root was last written by a newer version of the study partner than the one on this machine (format %s here, %s in the root); update the plugin on this machine before recording more\n' "$STUDY_FORMAT_CURRENT" "$STUDY_FORMAT"
+    elif [ "$STUDY_FORMAT" -lt "$STUDY_FORMAT_CURRENT" ]; then
+        printf 'this study root is in an older format (%s; current is %s); check-root.sh --upgrade brings it up to date and deletes nothing\n' "$STUDY_FORMAT" "$STUDY_FORMAT_CURRENT"
+    fi
+}
+
 # sync_notes <study-root>: one "LEVEL<TAB>text" line for each sign that the study root was
 # changed in two places, or holds work another machine cannot see yet. Read-only. Prints
 # nothing when there is none. FAIL is a file the scripts parse that holds merge markers;
@@ -116,16 +151,27 @@ sync_notes() {
             printf 'FAIL%s%s holds unresolved merge markers; resolve them before more is recorded\n' "$sn_tab" "${sn_f#"$sn_root"/}"
         fi
     done
+    # a subject whose last session was recorded on a different machine. This is the only sign
+    # a shared folder gives: two machines writing one file leave no conflict copy behind.
+    sn_me="$(this_machine)"
+    for sn_f in "$ST_SUBJECTS"/*/progress.md; do
+        [ -f "$sn_f" ] || continue
+        sn_d="$(dirname "$sn_f")"
+        sn_m="$(progress_field "$sn_d" "Last machine")"
+        if [ -n "$sn_m" ] && [ "$sn_m" != "$sn_me" ]; then
+            printf 'WARN%s%s was last recorded on another machine (%s) on %s; check that this folder is up to date before more is recorded\n' "$sn_tab" "$(basename "$sn_d")" "$sn_m" "$(progress_field "$sn_d" "Last session")"
+        fi
+    done
     # when the study root is its own git repository: work that is not merged, committed or pushed
     command -v git >/dev/null 2>&1 || return 0
     sn_up="$(git -C "$sn_root" rev-parse --show-cdup 2>/dev/null)" || return 0
     [ -z "$sn_up" ] || return 0
     sn_n="$(git -C "$sn_root" ls-files -u 2>/dev/null | cut -f2 | sort -u | sed '/^$/d' | wc -l | tr -d ' ')"
-    [ "$sn_n" -eq 0 ] || printf 'WARN%sgit: %s file(s) with an unfinished merge\n' "$sn_tab" "$sn_n"
+    [ "$sn_n" -eq 0 ] || printf 'WARN%s%s file(s) were changed in two places and are only half combined (git: an unfinished merge); finish that before more is recorded\n' "$sn_tab" "$sn_n"
     sn_n="$(git -C "$sn_root" status --porcelain 2>/dev/null | sed '/^$/d' | wc -l | tr -d ' ')"
-    [ "$sn_n" -eq 0 ] || printf 'WARN%sgit: %s change(s) not committed; another machine will not see them until they are committed and synced\n' "$sn_tab" "$sn_n"
+    [ "$sn_n" -eq 0 ] || printf 'WARN%s%s change(s) are not saved to this study root'"'"'s history yet, so another machine cannot see them (git: not committed)\n' "$sn_tab" "$sn_n"
     sn_n="$(git -C "$sn_root" rev-list --count '@{u}..HEAD' 2>/dev/null)" || sn_n=0
-    [ "${sn_n:-0}" -eq 0 ] || printf 'WARN%sgit: %s commit(s) not pushed\n' "$sn_tab" "$sn_n"
+    [ "${sn_n:-0}" -eq 0 ] || printf 'WARN%s%s saved checkpoint(s) have not been sent to your other machines yet (git: not pushed)\n' "$sn_tab" "$sn_n"
     return 0
 }
 

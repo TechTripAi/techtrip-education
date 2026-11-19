@@ -3,6 +3,31 @@
 All notable changes to `techtrip-education` are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.2.2] - 2026-11-19
+
+### Added
+- `record-session.sh` sets the `Last session` date in a subject's `progress.md` and a new
+  `Last machine` line beside it. When a subject was last recorded on a different machine,
+  `overview.sh` and `check-root.sh` say so. On a network share that is the only sign there
+  is, since two machines writing one file leave no conflict copy. Ledgers without the line
+  read as before.
+- `STUDY_FORMAT` in `study.config`: the format of a study root's files. It is 1, and a root
+  with no stamp is format 1. `overview.sh` and `check-root.sh` say when a root is in an
+  older format, or in a newer one than this copy of the plugin can write.
+- `check-root.sh --upgrade` brings a study root in an older format up to date. No release
+  has needed a step yet, so today it only records the format.
+- README "Updating": the update command for each way of installing, Copilot CLI included.
+- The tour says to start a new chat for each sitting and to say "pause here" before leaving.
+
+### Changed
+- Notes about a git study root are worded for a learner who does not know git: changes not
+  yet saved to the root's history, checkpoints not yet sent to other machines, files changed
+  in two places and only half combined. The git term follows in brackets.
+- `init-progress.sh` brings the description of an existing checkpoint into line with the
+  plan when the plan rewords it. The checkpoint's status and every step row stay as they are.
+- "More than one machine" says what works: anything that presents the study root as an
+  ordinary folder, a network share included. A notebook application does not.
+
 ## [0.2.1] - 2026-11-18
 
 ### Fixed

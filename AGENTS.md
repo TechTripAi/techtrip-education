@@ -61,8 +61,8 @@ worked one step at a time, with all state in plain files.
     `progress-format.md`, `overview-format.md`, `packet-format.md`.
   - `scripts/`: `lib/resolve.sh` (sourced by every script), `write-config.sh`,
     `new-subject.sh`, `resolve-subject.sh`, `init-progress.sh`, `set-step.sh`,
-    `record-review.sh`, `open-lesson.sh`, `reviews.sh`, `overview.sh`, `pace.sh`,
-    `export-packet.sh`, `close-subject.sh`, `check-root.sh`.
+    `record-review.sh`, `record-session.sh`, `open-lesson.sh`, `reviews.sh`,
+    `overview.sh`, `pace.sh`, `export-packet.sh`, `close-subject.sh`, `check-root.sh`.
 - `skills/study-orientation/SKILL.md`: the tour. Teaches, never executes, never restates a
   format.
 - `incubator/<name>/` for unpromoted skills. Manifests never see it.
@@ -86,9 +86,14 @@ chooses.
   syncing. The registry holds absolute paths and is per machine, so
   `write-config.sh --register <directory>` adds an existing root to it without changing
   the root. Nothing locks a subject. `sync_notes` in `lib/resolve.sh` finds conflict
-  copies, merge markers and, in a git repository, unmerged, uncommitted and unpushed
-  work; `overview.sh` prints them as `overview: note:` lines on stderr and
-  `check-root.sh` as `sync` rows. They are reports and never stop anything.
+  copies, merge markers, a subject last recorded on another machine and, in a git
+  repository, unmerged, uncommitted and unpushed work; `overview.sh` prints them as
+  `overview: note:` lines on stderr and `check-root.sh` as `sync` rows. They are reports
+  and never stop anything. Their wording is for a learner who does not know git.
+- `STUDY_FORMAT` in `study.config` is the format of a study root's files;
+  `STUDY_FORMAT_CURRENT` in `lib/resolve.sh` is the one the scripts write. A root with no
+  stamp is format 1. `format_note` reports a difference through the same notes, and
+  `check-root.sh --upgrade` holds the steps from each format to the next.
 - A subject reference is `[<root>:]<directory name | fragment of the name or title | path>`.
   `resolve-subject.sh` prints the subject directory; exit 4 lists several matches, exit 5
   means no subject was named, exit 2 says when a subject is archived.
@@ -98,7 +103,10 @@ chooses.
 - `plan.md` is the contract between planning and the ledger. `init-progress.sh` parses
   `## Phase X: Title` headings, column-zero `N. **[Learn|Apply] Title.**` lines into step
   ids such as `A1` and `B3`, and `Checkpoint X:` lines into `CP-X`. It creates
-  `progress.md`, or adds rows for new steps and checkpoints and changes nothing else.
+  `progress.md`, or adds rows for new steps and checkpoints and brings a reworded
+  checkpoint's description into line with the plan. It changes nothing else.
+- `record-session.sh` writes the two header lines of `progress.md`: the last session's
+  date and the machine it was recorded on. The skill writes the session entry.
 - `set-step.sh` is the only thing that changes a step's or a checkpoint's status.
   `record-review.sh` is the only thing that changes a step's review level and next
   suggested review; levels step through `REVIEW_INTERVALS` (days). The skill never does
@@ -152,7 +160,11 @@ Always set `STUDY_ROOTS` to a scratch file when testing, so the real registry is
 - All state is plain text under the study root. Nothing on the resume path reads the
   registry alone, a transcript, or anything owned by a harness.
 - Existing study roots keep working. Change the plan parser or the ledger columns only with
-  a matching update to the reference file and a CHANGELOG line.
+  a matching update to the reference file and a CHANGELOG line. Prefer a change older
+  scripts can still read. One they cannot read raises `STUDY_FORMAT_CURRENT` and ships
+  with a step in `check-root.sh --upgrade` and a test that upgrades a root made by the
+  previous version; a step is safe to run twice, copies aside what it rewrites and
+  deletes nothing.
 - Anything the skill starts on its own is worded as an offer. No script or skill text
   blocks the learner, enforces an order, or reacts to a target date that has passed.
 - Nothing is deleted from a study root. Closing moves a subject; exporting copies.

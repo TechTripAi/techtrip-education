@@ -1,22 +1,60 @@
 #!/usr/bin/env bash
-# Health check for a study root. Read-only. One PASS/WARN/FAIL row per check.
+# Health check for a study root. One PASS/WARN/FAIL row per check. Read-only unless
+# --upgrade is given.
 #
-# Usage: check-root.sh [<directory> | --root <study root name>]
-# Exit 1: at least one FAIL. Exit 2: no study root found.
+# Usage: check-root.sh [<directory> | --root <study root name>] [--upgrade]
+#   --upgrade brings a study root in an older format up to the one these scripts write. It
+#   says what it does, copies aside any file it rewrites, deletes nothing, and is safe to
+#   run again. On a root that is already current it only records the format in study.config.
+# Exit 1: at least one FAIL, or bad usage. Exit 2: no study root found.
 set -eu
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 . "$SCRIPT_DIR/lib/resolve.sh"
 
 fails=0
 row() { printf '%-5s %-28s %s\n' "$1" "$2" "$3"; [ "$1" = FAIL ] && fails=$((fails + 1)) || true; }
-if [ "${1:-}" = "--root" ]; then open_root "${2:-}" || exit 2
-elif [ -n "${1:-}" ]; then
-    [ -f "$1/study.config" ] || { echo "check-root: no study.config in $1" >&2; exit 2; }
-    load_config "$1/study.config"
+dir=""; rootname=""; upgrade=0
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --root) rootname="${2:-}"; [ -n "$rootname" ] || { echo "check-root: --root needs a name" >&2; exit 1; }; shift 2 ;;
+        --upgrade) upgrade=1; shift ;;
+        -*) echo "check-root: unknown option $1" >&2; exit 1 ;;
+        *) [ -z "$dir" ] && dir="$1" || { echo "check-root: one directory only" >&2; exit 1; }; shift ;;
+    esac
+done
+if [ -n "$rootname" ]; then open_root "$rootname" || exit 2
+elif [ -n "$dir" ]; then
+    [ -f "$dir/study.config" ] || { echo "check-root: no study.config in $dir" >&2; exit 2; }
+    load_config "$dir/study.config"
 else open_root "" || exit 2
+fi
+
+# --upgrade: one block per format step, oldest first. Each block must be safe to run twice,
+# must copy aside any learner file it rewrites, and must delete nothing. There are no steps
+# yet: every release so far reads the files of the one before it.
+if [ "$upgrade" -eq 1 ]; then
+    if [ "$STUDY_FORMAT" -gt "$STUDY_FORMAT_CURRENT" ]; then
+        echo "check-root: this study root is format $STUDY_FORMAT and these scripts write format $STUDY_FORMAT_CURRENT; update the plugin on this machine. Nothing was changed."
+    else
+        f="$STUDY_FORMAT"
+        while [ "$f" -lt "$STUDY_FORMAT_CURRENT" ]; do
+            # case "$f" in 1) ... format 1 to 2 ... ;; esac
+            f=$((f + 1))
+        done
+        if grep -q "^STUDY_FORMAT='$STUDY_FORMAT_CURRENT'\$" "$ST_CONFIG" 2>/dev/null; then
+            echo "check-root: already format $STUDY_FORMAT_CURRENT; nothing to upgrade"
+        else
+            set_config_key "$ST_CONFIG" STUDY_FORMAT "$STUDY_FORMAT_CURRENT"
+            echo "check-root: recorded format $STUDY_FORMAT_CURRENT in $ST_CONFIG; no file needed changing"
+            STUDY_FORMAT="$STUDY_FORMAT_CURRENT"
+        fi
+    fi
+    echo
 fi
 row PASS "study.config" "$ST_CONFIG"
 row PASS "STUDY_NAME" "$STUDY_NAME"
+fn="$(format_note)"
+if [ -z "$fn" ]; then row PASS "format" "$STUDY_FORMAT"; else row WARN "format" "$fn"; fi
 reg="$(registry_lookup "$STUDY_NAME")"
 if [ "$reg" = "$ST_CONFIG" ]; then row PASS "registry" "$(registry_file)"
 elif [ -z "$reg" ]; then row WARN "registry" "not registered; run write-config.sh --register $ST_ROOT"
@@ -46,7 +84,7 @@ for d in "$ST_SUBJECTS"/*/; do
 done
 [ "$n" -gt 0 ] || row WARN "subjects" "none active"
 notes="$(sync_notes "$ST_ROOT")"
-if [ -z "$notes" ]; then row PASS "sync" "no conflict copies, merge markers or unsynced work found"
+if [ -z "$notes" ]; then row PASS "sync" "no sign of changes made in two places, and nothing waiting to be sent"
 else
     while IFS="$(printf '\t')" read -r lvl txt; do row "$lvl" "sync" "$txt"; done <<NOTES
 $notes

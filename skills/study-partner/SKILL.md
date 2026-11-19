@@ -40,9 +40,11 @@ Run `bash <scripts>/overview.sh --stdout`. It prints one status line per active 
   here and changes nothing in it.
 
 Lines on stderr that start `overview: note:` mean the study root may have been changed in
-two places, or holds work another machine cannot see yet. Tell the learner what they say
-and carry on with what they asked for; resolving, committing and syncing are theirs to do
-or to ask for. See "More than one machine" in `references/config-keys.md`.
+two places, was last worked on from another machine, holds work another machine cannot see
+yet, or was written by a different version of this plugin. Tell the learner what they say
+in plain words and carry on with what they asked for; resolving and syncing are theirs to
+do or to ask for. When a note says to update the plugin, give the update command for the
+tool you are running in. See "More than one machine" in `references/config-keys.md`.
 
 ## 2. Menus
 
@@ -115,7 +117,8 @@ Whenever a piece of work finishes, and always before the session ends:
 2. Each open lesson's "Stopped at" line, and a dated line under its "Reviews" when it was
    revisited.
 3. A session entry under `## Sessions` in `progress.md`, including anything offered and
-   declined, and the `Last session` date in its header.
+   declined. Then `bash <scripts>/record-session.sh "<subject>"`, which sets the header's
+   last session date and the machine it was recorded on.
 4. New terms in `glossary.md`.
 5. `bash <scripts>/overview.sh`, so the view across subjects is current.
 
@@ -141,4 +144,5 @@ each stopped, steps done, anything suggested for review, and the target date if 
 one. Then show the menu for the subject, or carry on with what the learner names.
 
 `bash <scripts>/check-root.sh` reports the health of the study root and is safe to run at
-any time.
+any time. With `--upgrade` it brings a study root written by an older version up to date;
+offer that when a note says the root is in an older format.

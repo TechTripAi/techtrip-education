@@ -4,7 +4,7 @@
   <img src="img/FellowshipOfTheAgents-bold-Education.png" alt="techtrip-education: a study partner for certifications, training and any topic, from TechTrip AI" width="100%" />
 </p>
 
-> **Status: currently under test as a first release, RC1 (version 0.2.1).** It works and is
+> **Status: currently under test as a first release, RC1 (version 0.2.2).** It works and is
 > installable, but expect rough edges and changes while it is being tried on real study
 > subjects. Reports of anything that goes wrong are welcome as issues on this repository.
 
@@ -118,10 +118,11 @@ name pointing at whichever loaded first.
 A study root set up in one tool works in the others. Its files are plain text, and the
 registry of study roots (`~/.study-roots`) is per user, not per tool.
 
-To use one study root from several machines, sync its folder with any tool (a private git
-repository works well) and run `write-config.sh --register <folder>` once on each machine.
-Work on a subject from one machine at a time. If a file was changed in two places, the
-study partner reports it and stops nothing.
+To use one study root from several machines, keep its folder in anything that presents it
+as an ordinary folder: a file-sync service, a network share or a private git repository.
+Run `write-config.sh --register <folder>` once on each machine. Work on a subject from one
+machine at a time. The study partner says when a subject was last worked on from another
+machine, or when a file was changed in two places, and stops nothing.
 
 ## What it writes
 
@@ -136,12 +137,22 @@ CI matrix is green.
 
 ## Updating
 
-```
-/plugin update techtrip-education@TechTrip-AI-plugins
-```
+Update the plugin the way you installed it:
 
-then `/reload-plugins` in a running session, or start a new one. In other tools, run
-`npx skills update -g`.
+| Installed with | Update with |
+|---|---|
+| Claude Code, from the catalog | `/plugin update techtrip-education@TechTrip-AI-plugins`, then `/reload-plugins` or a new session |
+| Copilot CLI, from the catalog | `copilot plugin marketplace update`, then `copilot plugin update techtrip-education` |
+| `npx skills add` (Cursor, Codex, Gemini CLI and others) | `npx skills update -g` |
+| A clone | `git pull` |
+
+Copilot CLI updates a catalog you added yourself only when you run those commands, unless
+you set `autoUpdate: true` on the catalog's entry in your Copilot user settings.
+
+Your study files do not need updating when the plugin does. If a later release ever changes
+a file format, the study partner says so when it next shows your subjects and offers to
+bring the study root up to date; nothing is deleted. If you use one study root from two
+machines, update the plugin on both.
 
 ## Developing
 

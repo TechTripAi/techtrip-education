@@ -8,7 +8,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 S="$HERE/../skills/study-partner/scripts"
 T="$(mktemp -d "${TMPDIR:-/tmp}/tted-test.XXXXXX")"
 T="$(cd "$T" && pwd)"
-export STUDY_ROOTS="$T/registry" STUDY_TODAY=2026-11-13
+export STUDY_ROOTS="$T/registry" STUDY_TODAY=2026-11-13 STUDY_MACHINE=desk.example.org
 unset STUDY_CONFIG 2>/dev/null || true
 R="$T/root"
 fails=0
@@ -34,6 +34,7 @@ is "write-config refuses to overwrite" "$(code bash "$S/write-config.sh" "$R")" 
 bash "$S/write-config.sh" "$R" REVIEW_INTERVALS="2 5" --force >/dev/null
 has "--force keeps other keys" "$(cat "$R/study.config")" "LEARNER_NAME='Learner'"
 has "--force updates the given key" "$(cat "$R/study.config")" "REVIEW_INTERVALS='2 5'"
+has "a new root records its format" "$(cat "$R/study.config")" "STUDY_FORMAT='1'"
 bash "$S/write-config.sh" "$R" REVIEW_INTERVALS="1 3 7 14 30" --force >/dev/null
 
 bash "$S/new-subject.sh" "AWS Solutions Architect" --slug aws-sa --kind certification --target 2027-01-15 >/dev/null
@@ -165,6 +166,34 @@ is "new step rows sit together under Steps" "$(printf '%s\n' "$prog" | awk '/^##
 has "sessions heading still survives" "$prog" "## Sessions"
 is "no temporary file is left behind" "$(ls "$A" | grep -c 'progress.md.tmp' || true)" 0
 
+# a checkpoint the plan rewords: its description follows the plan, its status stays
+sed 's/^Checkpoint A: .*/Checkpoint A: quiz on steps 1, 2 and 5./' "$A/plan.md" > "$A/plan.md.new" && mv "$A/plan.md.new" "$A/plan.md"
+has "dry run names a reworded checkpoint" "$(bash "$S/init-progress.sh" aws-sa --dry-run 2>&1)" "would update the description of: CP-A"
+has "a reworded checkpoint is reported" "$(bash "$S/init-progress.sh" aws-sa)" "updated the description of 1 checkpoint(s) to match the plan: CP-A"
+prog="$(cat "$A/progress.md")"
+has "checkpoint description follows the plan, status kept" "$prog" "| CP-A | quiz on steps 1, 2 and 5. | skipped 2026-11-13 |"
+has "other checkpoints are untouched" "$prog" "| CP-B | quiz on steps 3 to 4. | pending |"
+has "step rows are untouched by a reworded checkpoint" "$prog" "| A2 | A | Apply | Launch and size an instance | skipped | 0 | 2026-11-13 | - | already do this at work |"
+is "init-progress is idempotent after a reword" "$(bash "$S/init-progress.sh" aws-sa | grep -c 'already has every step')" 1
+
+# --- recording a session: the date and the machine it was recorded on
+has "record-session reports the date and machine" "$(bash "$S/record-session.sh" aws-sa)" "aws-sa last session 2026-11-13 on desk"
+prog="$(cat "$A/progress.md")"
+has "Last session is set" "$prog" "**Last session:** 2026-11-13"
+has "Last machine is set, domain dropped" "$prog" "**Last machine:** desk"
+bash "$S/record-session.sh" aws-sa --date 2026-11-14 >/dev/null
+is "Last machine is written once" "$(grep -c '^\*\*Last machine:\*\*' "$A/progress.md")" 1
+has "a later session moves the date" "$(cat "$A/progress.md")" "**Last session:** 2026-11-14"
+has "session entries survive record-session" "$(cat "$A/progress.md")" "## Sessions"
+has "step rows survive record-session" "$(cat "$A/progress.md")" "| A2 | A | Apply | Launch and size an instance | skipped | 0 | 2026-11-13 | - | already do this at work |"
+is "record-session refuses a bad date" "$(code bash "$S/record-session.sh" aws-sa --date tomorrow)" 1
+is "the same machine gives no note" "$(bash "$S/overview.sh" --stdout 2>&1 >/dev/null | grep -c 'another machine' || true)" 0
+note="$(STUDY_MACHINE=laptop bash "$S/overview.sh" --stdout 2>&1 >/dev/null)"
+has "another machine is told where the subject was last recorded" "$note" "overview: note: aws-sa was last recorded on another machine (desk) on 2026-11-14"
+hasnt "a subject with no recorded machine gives no note" "$note" "rust was last recorded"
+has "check-root shows it as a warning" "$(STUDY_MACHINE=laptop bash "$S/check-root.sh" "$R")" "WARN  sync                         aws-sa was last recorded on another machine"
+is "another machine is not a failure" "$(STUDY_MACHINE=laptop code bash "$S/check-root.sh" "$R")" 0
+
 # --- the packet: export at any time, refresh, close, reopen
 echo "notes" > "$A/sheets/compute-cheat-sheet.md"
 P="$(bash "$S/export-packet.sh" aws-sa)"
@@ -221,6 +250,24 @@ fi
 printf '<<<<<<< HEAD\n' >> "$C/subjects/rust/progress.md"
 has "check-root names a file with merge markers" "$(bash "$S/check-root.sh" "$C" || true)" "subjects/rust/progress.md holds unresolved merge markers"
 is "merge markers in the ledger are a failure" "$(code bash "$S/check-root.sh" "$C")" 1
+
+# --- the format of a study root, and the upgrade path
+F="$T/old"
+mkdir -p "$F/subjects"
+printf "STUDY_NAME='old'\nSUBJECTS_DIR='subjects'\n" > "$F/study.config"
+has "a root with no stamp is format 1" "$(bash "$S/check-root.sh" "$F")" "PASS  format                       1"
+hasnt "the health check alone changes nothing" "$(cat "$F/study.config")" "STUDY_FORMAT"
+has "--upgrade records the format" "$(bash "$S/check-root.sh" "$F" --upgrade)" "recorded format 1"
+has "the stamp is added and other keys kept" "$(cat "$F/study.config")" "STUDY_NAME='old'"
+has "the stamp is in study.config" "$(cat "$F/study.config")" "STUDY_FORMAT='1'"
+has "--upgrade twice is harmless" "$(bash "$S/check-root.sh" "$F" --upgrade)" "nothing to upgrade"
+is "the stamp is written once" "$(grep -c '^STUDY_FORMAT=' "$F/study.config")" 1
+printf "STUDY_NAME='old'\nSUBJECTS_DIR='subjects'\nSTUDY_FORMAT='9'\n" > "$F/study.config"
+has "a newer root says to update the plugin" "$(bash "$S/check-root.sh" "$F")" "WARN  format                       this study root was last written by a newer version"
+is "a newer root is not a failure" "$(code bash "$S/check-root.sh" "$F")" 0
+has "--upgrade leaves a newer root alone" "$(bash "$S/check-root.sh" "$F" --upgrade)" "Nothing was changed"
+has "a newer root keeps its stamp" "$(cat "$F/study.config")" "STUDY_FORMAT='9'"
+has "overview notes a newer root" "$(STUDY_CONFIG="$F/study.config" bash "$S/overview.sh" --stdout 2>&1 >/dev/null)" "overview: note: this study root was last written by a newer version"
 
 # --- found from anywhere when one root is registered; health check
 cd /

@@ -3,12 +3,14 @@
 The subject's working state: where every step stands, which checkpoints have been offered,
 and what happened in each session. It is not part of the exported packet.
 `init-progress.sh` creates it and adds rows; `set-step.sh` and `record-review.sh` update one
-row at a time; the study partner writes the header and the session entries.
+row at a time; `record-session.sh` writes the two header lines; the study partner writes the
+session entries.
 
 ```markdown
 # AWS Solutions Architect: progress
 
 **Last session:** 2026-11-20
+**Last machine:** desk
 
 ## Steps
 
@@ -53,11 +55,17 @@ gaps are `REVIEW_INTERVALS` in `study.config`. A step is suggested for review wh
 
 `set-step.sh "<subject>" CP-A taken|skipped|pending`. A checkpoint is offered once its phase
 has been worked through; record `skipped` when the learner declines, so it is not offered
-again unless they ask.
+again unless they ask. When the plan rewords a checkpoint, `init-progress.sh` brings the
+`Covers` text into line with it and leaves the status alone.
 
 ## Header and sessions
 
-`**Last session:**` is `YYYY-MM-DD` or `-`. Append one entry per session under
-`## Sessions`, newest last: what was done, and anything that was offered and declined.
-Never rewrite an earlier entry. Where the learner stopped inside a lesson is recorded in
-that lesson file, not here.
+`**Last session:**` is `YYYY-MM-DD` or `-`. `**Last machine:**` is the short name of the
+machine the last session was recorded on; a ledger written before version 0.2.2 has no such
+line until its next session. Neither is written by hand: after appending the session entry,
+run `record-session.sh "<subject>" [--date YYYY-MM-DD]`. When a subject was last recorded on
+a different machine, `overview.sh` and `check-root.sh` say so.
+
+Append one entry per session under `## Sessions`, newest last: what was done, and anything
+that was offered and declined. Never rewrite an earlier entry. Where the learner stopped
+inside a lesson is recorded in that lesson file, not here.
