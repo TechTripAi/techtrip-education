@@ -152,6 +152,18 @@ has "new step added to the ledger" "$prog" "| B4 | B | Apply | Build a VPC | pen
 has "new checkpoint added" "$prog" "| CP-B | quiz on steps 3 to 4. | pending |"
 has "existing rows untouched" "$prog" "| A2 | A | Apply | Launch and size an instance | skipped | 0 | 2026-11-13 | - | already do this at work |"
 has "sessions heading survives" "$prog" "## Sessions"
+# several new rows at once: BSD awk (macOS) rejects a newline in a -v value
+printf '\n## Phase C: Storage\n\n5. **[Learn] Object storage.** Sources: S1.\n   Done when: you can say when to use it.\n6. **[Learn] Block storage \\ volumes.** Sources: S1.\n   Done when: you can size one.\n7. **[Apply] Pick a storage class.** Sources: S1.\n   Done when: you have picked one.\n\nCheckpoint C: quiz on steps 5 to 7.\nCheckpoint D: mixed review.\n' >> "$A/plan.md"
+is "several new steps at once are added" "$(code bash "$S/init-progress.sh" aws-sa)" 0
+prog="$(cat "$A/progress.md")"
+has "first of several new steps" "$prog" "| C5 | C | Learn | Object storage | pending | 0 | - | - | |"
+has "a backslash in a title is kept" "$prog" "| C6 | C | Learn | Block storage \\ volumes | pending | 0 | - | - | |"
+has "last of several new steps" "$prog" "| C7 | C | Apply | Pick a storage class | pending | 0 | - | - | |"
+has "first of several new checkpoints" "$prog" "| CP-C | quiz on steps 5 to 7. | pending |"
+has "last of several new checkpoints" "$prog" "| CP-D | mixed review. | pending |"
+is "new step rows sit together under Steps" "$(printf '%s\n' "$prog" | awk '/^## Checkpoints/{exit} /^\| *[A-Z]+[0-9]+ *\|/{n++} END{print n+0}')" 7
+has "sessions heading still survives" "$prog" "## Sessions"
+is "no temporary file is left behind" "$(ls "$A" | grep -c 'progress.md.tmp' || true)" 0
 
 # --- the packet: export at any time, refresh, close, reopen
 echo "notes" > "$A/sheets/compute-cheat-sheet.md"

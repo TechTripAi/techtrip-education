@@ -74,13 +74,17 @@ if [ "$dry" -eq 1 ]; then
     echo "init-progress: dry run, nothing written ($added new steps, $addedc new checkpoints)" >&2; exit 0
 fi
 tmp="$sdir/progress.md.tmp.$$"
-tr -d '\r' < "$sdir/progress.md" | awk -v adds="$news" -v addc="$newc" '
+# The new rows reach awk through the environment: with several rows the value has newlines,
+# which BSD awk (macOS) refuses in a -v assignment, and -v would also rewrite backslashes.
+tr -d '\r' < "$sdir/progress.md" | ADDS="$news" ADDC="$newc" awk '
+    BEGIN { adds=ENVIRON["ADDS"]; addc=ENVIRON["ADDC"] }
     { lines[NR]=$0
       if ($0 ~ /^## /) sect=$0
       if (sect ~ /^## Steps/ && ($0 ~ /^\| *[A-Z]+[0-9]+ *\|/ || $0 ~ /^\|---/)) lasts=NR
       if (sect ~ /^## Checkpoints/ && ($0 ~ /^\| *CP-[A-Z]+ *\|/ || $0 ~ /^\|---/)) lastc=NR }
     END { for (i=1;i<=NR;i++) { print lines[i]
               if (i==lasts && adds!="") print adds
-              if (i==lastc && addc!="") print addc } }' > "$tmp"
+              if (i==lastc && addc!="") print addc } }' > "$tmp" \
+    || { rm -f "$tmp"; echo "init-progress: could not add the new rows; progress.md is unchanged" >&2; exit 1; }
 mv "$tmp" "$sdir/progress.md"
 echo "init-progress: added $added new steps and $addedc new checkpoints to $sdir/progress.md"

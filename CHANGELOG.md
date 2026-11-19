@@ -3,6 +3,16 @@
 All notable changes to `techtrip-education` are documented here.
 Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.2.1] - 2026-11-18
+
+### Fixed
+- `init-progress.sh` failed on macOS (`awk: newline in string`) when a changed plan added
+  more than one step, or more than one checkpoint, to an existing `progress.md`. It left an
+  empty `progress.md.tmp.<pid>` beside the ledger and added nothing; the ledger itself was
+  not changed. The new rows now reach awk through the environment, so any number can be
+  added at once and a backslash in a title is kept as written. If the rewrite fails for
+  another reason, the temporary file is removed and the script says the ledger is unchanged.
+
 ## [0.2.0] - 2026-11-16
 
 First public release, listed in the TechTrip-AI-plugins catalog. Under test as release
